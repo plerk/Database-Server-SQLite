@@ -1,0 +1,11 @@
+Carp
+Database::Server
+Database::Server::Role::Server
+ExtUtils::MakeMaker
+File::Temp
+File::Which
+Moose
+MooseX::Types::Path::Class
+Path::Class
+Test::More
+namespace::autoclean
