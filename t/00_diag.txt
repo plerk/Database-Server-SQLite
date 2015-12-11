@@ -1,6 +1,5 @@
 Carp
 Database::Server
-Database::Server::Role::Server
 ExtUtils::MakeMaker
 File::Temp
 File::Which
