@@ -231,11 +231,11 @@ Connect to the database using an interactive shell.
 
   sub interactive_shell
   {
-    my($self, $dbname) = @_;
+    my($self, $dbname, %args) = @_;
     $dbname //= 'sqlite';
     my $file = $self->data->file("$dbname.sqlite");
     croak "Database $dbname does not exist" unless -f $file;
-    $self->run($self->sqlite3, $file);
+    $args{exec} ? exec $self->sqlite3, $file : $self->run($self->sqlite3, $file);
     $self;
   }
 
