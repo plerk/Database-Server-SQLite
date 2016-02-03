@@ -93,7 +93,7 @@ database faux instance.  Example:
     my $data = $root->subdir( qw( var lib data sqlite ) );
     $_->mkpath(0, 0700) for ($data);
     
-    my %args = ( data => $data );
+    my %args = ( data => $data->stringify );
     __PACKAGE__->new(%args)->init;
     \%args;
   }
