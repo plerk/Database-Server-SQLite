@@ -40,6 +40,8 @@ restarting and reloading SQLite faux instances.
   use File::Which qw( which );
   use Carp qw( croak );
   use File::Temp qw( tempfile );
+  use Capture::Tiny qw( capture );
+  use Ref::Util qw( is_arrayref is_scalarref );
   use namespace::autoclean;
 
   with 'Database::Server::Role::Server';
@@ -51,6 +53,16 @@ restarting and reloading SQLite faux instances.
     lazy    => 1,
     default => sub {
       which 'sqlite3';
+    },
+  );
+  
+  has sqldiff => (
+    is      => 'ro',
+    isa     => File,
+    coerce  => 1,
+    lazy    => 1,
+    default => sub {
+      which 'sqldiff',
     },
   );
 
@@ -307,6 +319,86 @@ Provide a DSN that can be fed into DBI to connect to the database using L<DBI>. 
     my $file = $self->data->file("$dbname.sqlite");
     croak "database $dbname does not exist" unless -f $file;
     "dbi:SQLite:dbname=$file";
+  }
+
+=head2 dump
+
+ $server->dump($dbname => $dest, %options);
+ $server->dump($dbname => $dest, %options, \@native_options);
+
+Dump data and/or schema from the given database.  If C<$dbname> is C<undef>
+then the C<sqlite> database will be used.  C<$dest> may be either
+a filename, in which case the dump will be written to that file, or a
+scalar reference, in which case the dump will be written to that scalar.
+Native C<pg_dump> options can be specified using C<@native_options>.
+Supported L<Database::Server> options include:
+
+=over 4
+
+=item data
+
+Include data in the dump.  Off by default.
+
+=item schema
+
+Include schema in the dump.  On by default.
+Dumping data without schema is not supported, so
+turning this off doesn't currently make sense.
+
+=item access
+
+Ignored.  There are no access controls for SQLite.
+
+=back
+
+=cut
+
+  sub dump
+  {
+    my @options = is_arrayref($_[-1]) ? @{ pop() } : ();
+    my($self, $dbname, $dest, %options) = @_;
+    $dbname //= 'sqlite';
+    
+    $options{data}   //= 0;
+    $options{schema} //= 1;
+    $options{access} //= 0;
+    
+    # TODO: this is probably doable by dumping
+    # the schema, creating a tmp database and
+    # using sqldiff.
+    croak("dumping just data is not supported")
+      if $options{data} && !$options{schema};
+    
+    my $sql;
+    if($options{data})
+    {
+      $sql = '.dump';
+    }
+    elsif($options{schema})
+    {
+      $sql = '.schema';
+    }
+    else
+    {
+      # no data no schema,
+      # no nothing
+      return '';
+    }
+    
+    my $ret = $self->shell($dbname, $sql, \@options);
+
+    die "dump failed: @{[ $ret->err ]}" unless $ret->is_success;
+    
+    if(is_scalarref $dest)
+    {
+      $$dest = $ret->out;
+    }
+    else
+    {
+      File->coerce($dest)->spew($ret->out);
+    }
+    
+    $self;
   }
 
 }

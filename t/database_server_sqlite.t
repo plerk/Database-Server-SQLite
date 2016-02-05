@@ -6,7 +6,7 @@ use File::Temp qw( tempdir );
 use Path::Class qw( dir );
 
 subtest 'normal' => sub {
-  plan tests => 8;
+  plan tests => 9;
   
   my $data = dir( tempdir( CLEANUP => 1 ) );
   my $server = Database::Server::SQLite->new(
@@ -88,6 +88,55 @@ subtest 'normal' => sub {
   
   };
   
+  subtest dump => sub {
+    plan tests => 6;
+    $DB::single = 1;
+    $server->create_database('dumptest1');
+    $server->shell('dumptest1', "CREATE TABLE foo (id int); INSERT INTO foo (id) VALUES (22);");
+
+    my $dump = '';
+    $server->dump('dumptest1', \$dump, data => 0, schema => 1);
+    isnt $dump, '', 'there is a dump (schema only)';
+    
+    $server->create_database('dumptest_schema_only');
+    $server->shell('dumptest_schema_only', $dump);
+    
+    $dump = '';
+    $server->dump('dumptest1', \$dump, data => 1, schema => 1);
+    isnt $dump, '', 'there is a dump (data only)';
+
+    $server->create_database('dumptest_schema_and_data');
+    $server->shell('dumptest_schema_and_data', $dump);
+    
+    my $dbh = eval {
+      DBI->connect($server->dsn('SQLite', 'dumptest_schema_only'), '', '', { RaiseError => 1, AutoCommit => 1 });
+    };
+    
+    SKIP: {
+      skip "test requires DBD::SQLite $@", 4 unless $dbh;
+      
+      my $h = eval {
+        my $sth = $dbh->prepare(q{ SELECT * FROM foo });
+        $sth->execute;
+        $sth->fetchrow_hashref;
+      };
+      is $@, '', 'did not crash';
+      is $h, undef, 'schema only';
+      
+      $dbh = DBI->connect($server->dsn('SQLite', 'dumptest_schema_and_data'), '', '', { RaiseError => 1, AutoCommit => 1 });
+      
+      $h = eval {
+        my $sth = $dbh->prepare(q{ SELECT * FROM foo });
+        $sth->execute;
+        $sth->fetchrow_hashref;
+      };
+      is $@, '', 'did not crash';
+      is_deeply $h, { id => 22 }, 'schema only';
+
+    };
+    
+  };
+ 
   subtest stop => sub {
     plan tests => 2;
     my $ret = eval { $server->stop };
