@@ -2,5 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.04      2016-02-05 15:35:04 -0500
+  - updated interface to work with Database::Server 0.04
+
 0.03      2015-12-12 04:46:26 -0500
   - initial version

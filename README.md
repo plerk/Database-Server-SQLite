@@ -105,9 +105,9 @@ Drop the database with the given name.
 
 Connect to the database using an interactive shell.
 
-## shell
+## load
 
-    $server->shell($dbname, $sql, \@options);
+    $server->load($dbname, $sql, \@options);
 
 Connect to the database using a non-interactive shell.
 
@@ -130,6 +130,32 @@ Connect to the database using a non-interactive shell.
     my $dsn = $server->dsn;
 
 Provide a DSN that can be fed into DBI to connect to the database using [DBI](https://metacpan.org/pod/DBI).  These drivers are supported: [DBD::SQLite](https://metacpan.org/pod/DBD::SQLite).
+
+## dump
+
+    $server->dump($dbname => $dest, %options);
+    $server->dump($dbname => $dest, %options, \@native_options);
+
+Dump data and/or schema from the given database.  If `$dbname` is `undef`
+then the `sqlite` database will be used.  `$dest` may be either
+a filename, in which case the dump will be written to that file, or a
+scalar reference, in which case the dump will be written to that scalar.
+Native `pg_dump` options can be specified using `@native_options`.
+Supported [Database::Server](https://metacpan.org/pod/Database::Server) options include:
+
+- data
+
+    Include data in the dump.  Off by default.
+
+- schema
+
+    Include schema in the dump.  On by default.
+    Dumping data without schema is not supported, so
+    turning this off doesn't currently make sense.
+
+- access
+
+    Ignored.  There are no access controls for SQLite.
 
 # AUTHOR
 
