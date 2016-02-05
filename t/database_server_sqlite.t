@@ -90,7 +90,6 @@ subtest 'normal' => sub {
   
   subtest dump => sub {
     plan tests => 6;
-    $DB::single = 1;
     $server->create_database('dumptest1');
     $server->shell('dumptest1', "CREATE TABLE foo (id int); INSERT INTO foo (id) VALUES (22);");
 
