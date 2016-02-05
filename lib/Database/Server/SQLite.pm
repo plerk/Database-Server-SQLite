@@ -40,7 +40,6 @@ restarting and reloading SQLite faux instances.
   use File::Which qw( which );
   use Carp qw( croak );
   use File::Temp qw( tempfile );
-  use Capture::Tiny qw( capture );
   use Ref::Util qw( is_arrayref is_scalarref );
   use namespace::autoclean;
 

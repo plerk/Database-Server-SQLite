@@ -18,6 +18,7 @@ $modules{$_} = $_ for qw(
   Moose
   MooseX::Types::Path::Class
   Path::Class
+  Ref::Util
   Test::More
   namespace::autoclean
 );
