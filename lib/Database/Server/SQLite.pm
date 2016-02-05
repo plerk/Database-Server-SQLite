@@ -251,9 +251,9 @@ Connect to the database using an interactive shell.
     $self;
   }
 
-=head2 shell
+=head2 load
 
- $server->shell($dbname, $sql, \@options);
+ $server->load($dbname, $sql, \@options);
 
 Connect to the database using a non-interactive shell.
 
@@ -275,7 +275,7 @@ The C<sqlite3> options to use.
 
 =cut
 
-  sub shell
+  sub load
   {
     my($self, $dbname, $sql, $options) = @_;
     $dbname  //= 'sqlite';
@@ -385,7 +385,7 @@ Ignored.  There are no access controls for SQLite.
       return '';
     }
     
-    my $ret = $self->shell($dbname, $sql, \@options);
+    my $ret = $self->load($dbname, $sql, \@options);
 
     die "dump failed: @{[ $ret->err ]}" unless $ret->is_success;
     
